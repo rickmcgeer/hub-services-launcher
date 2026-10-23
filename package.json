@@ -1,0 +1,68 @@
+{
+  "name": "hub_services_launcher",
+  "version": "0.1.0",
+  "description": "JupyterLab Launcher tiles for the JupyterHub services (display: true) the current user can reach - the same list as the Hub's Services menu, without leaving JupyterLab.",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension"
+  ],
+  "homepage": "https://github.com/rickmcgeer/ai-tools-launcher",
+  "license": "BSD-3-Clause",
+  "author": {
+    "name": "Rick McGeer",
+    "email": "rick@mcgeer.com"
+  },
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
+    "src/**/*.{ts,tsx}"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "style": "style/index.css",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rickmcgeer/ai-tools-launcher"
+  },
+  "scripts": {
+    "build": "jlpm build:lib && jlpm build:labextension:dev",
+    "build:prod": "jlpm clean && jlpm build:lib:prod && jlpm build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "build:lib": "tsc --sourceMap",
+    "build:lib:prod": "tsc",
+    "clean": "jlpm clean:lib",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "clean:labextension": "rimraf hub_services_launcher/labextension hub_services_launcher/_version.py",
+    "clean:all": "jlpm clean:lib && jlpm clean:labextension",
+    "install:extension": "jlpm build",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:src": "tsc -w --sourceMap",
+    "watch:labextension": "jupyter labextension watch ."
+  },
+  "dependencies": {
+    "@jupyterlab/application": "^4.4.3",
+    "@jupyterlab/coreutils": "^6.4.3",
+    "@jupyterlab/launcher": "^4.4.3",
+    "@jupyterlab/ui-components": "^4.4.3"
+  },
+  "devDependencies": {
+    "@jupyterlab/builder": "^4.4.3",
+    "npm-run-all2": "7.0.1",
+    "rimraf": "5.0.1",
+    "typescript": "~5.0.2"
+  },
+  "sideEffects": [
+    "style/*.css",
+    "style/index.js"
+  ],
+  "styleModule": "style/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "jupyterlab": {
+    "extension": true,
+    "outputDir": "hub_services_launcher/labextension"
+  }
+}
