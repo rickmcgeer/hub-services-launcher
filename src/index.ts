@@ -2,22 +2,21 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { PageConfig, URLExt } from '@jupyterlab/coreutils';
+import { URLExt } from '@jupyterlab/coreutils';
 import { ILauncher } from '@jupyterlab/launcher';
+import { ServerConnection } from '@jupyterlab/services';
 import { LabIcon } from '@jupyterlab/ui-components';
 
 const CATEGORY = 'Hub Services';
 
 /**
- * The subset of the Hub's service model (GET /hub/api/services) used here.
- * `prefix` is the path the Hub proxies the service under (e.g.
- * /services/gdp/); `display` is the same flag the Hub's own Services menu
- * filters on.
+ * A service the Hub lists in its Services menu, as returned by this
+ * extension's server component. `prefix` is the path the Hub proxies the
+ * service under (e.g. /services/gdp/).
  */
 interface IHubService {
   name: string;
-  prefix?: string;
-  display?: boolean;
+  prefix: string;
 }
 
 // Muted palette; a service always gets the same colour (hash of its name).
@@ -63,30 +62,26 @@ function monogram(name: string): string {
 }
 
 /**
- * Lists the services the Hub would show in its Services menu. Resolves to
- * [] (never rejects) when not running under a Hub, or when the Hub refuses:
- * listing services needs the `list:services` and `read:services` scopes,
- * which the default `user` role does not have.
+ * Lists the services the Hub would show in its Services menu, by asking this
+ * extension's server component (which talks to the Hub with the single-user
+ * server's own API token). The browser can't ask the Hub directly: the Hub
+ * checks XSRF even on GETs to its API, with a cookie scoped to /hub/ that
+ * JavaScript on a /user/<name>/lab page can't read.
+ *
+ * Resolves to [] (never rejects) when not running under a Hub, when the
+ * server component isn't installed, or when the Hub refuses (the server
+ * role needs the `list:services` and `read:services` scopes).
  */
-async function fetchServices(hubHost: string, hubPrefix: string): Promise<IHubService[]> {
-  const url = hubHost + URLExt.join(hubPrefix, 'api', 'services');
+async function fetchServices(): Promise<IHubService[]> {
   try {
-    const response = await fetch(url, {
-      credentials: 'same-origin',
-      headers: { Accept: 'application/json' }
-    });
+    const settings = ServerConnection.makeSettings();
+    const url = URLExt.join(settings.baseUrl, 'hub-services-launcher', 'services');
+    const response = await ServerConnection.makeRequest(url, {}, settings);
     if (!response.ok) {
-      console.debug(
-        `hub-services-launcher: ${url} returned ${response.status}; ` +
-          'grant the user role the list:services and read:services scopes to show Hub services here.'
-      );
+      console.debug(`hub-services-launcher: ${url} returned ${response.status}`);
       return [];
     }
-    // JupyterHub 5.x answers with an object keyed by service name; accept a
-    // plain array too, in case other versions differ.
-    const data: IHubService[] | Record<string, IHubService> = await response.json();
-    const services = Array.isArray(data) ? data : Object.values(data);
-    return services.filter(s => s.display && s.prefix);
+    return (await response.json()) as IHubService[];
   } catch (error) {
     console.debug('hub-services-launcher: could not list Hub services', error);
     return [];
@@ -100,13 +95,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   autoStart: true,
   requires: [ILauncher],
   activate: (app: JupyterFrontEnd, launcher: ILauncher) => {
-    const hubPrefix = PageConfig.getOption('hubPrefix');
-    if (!hubPrefix) {
-      return; // not running under a JupyterHub
-    }
-    const hubHost = PageConfig.getOption('hubHost');
-
-    void fetchServices(hubHost, hubPrefix).then(services => {
+    void fetchServices().then(services => {
       services
         .sort((a, b) => a.name.localeCompare(b.name))
         .forEach((service, index) => {
@@ -116,7 +105,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
             caption: `Open the ${service.name} service`,
             icon: iconFor(service.name),
             execute: () => {
-              window.open(hubHost + service.prefix, '_blank', 'noopener');
+              window.open(service.prefix, '_blank', 'noopener');
             }
           });
           launcher.add({ command, category: CATEGORY, rank: index + 1 });

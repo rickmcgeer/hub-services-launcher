@@ -1,6 +1,6 @@
 {
   "name": "hub_services_launcher",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "JupyterLab Launcher tiles for the JupyterHub services (display: true) the current user can reach - the same list as the Hub's Services menu, without leaving JupyterLab.",
   "keywords": [
     "jupyter",
@@ -45,6 +45,7 @@
     "@jupyterlab/application": "^4.4.3",
     "@jupyterlab/coreutils": "^6.4.3",
     "@jupyterlab/launcher": "^4.4.3",
+    "@jupyterlab/services": "^7.4.3",
     "@jupyterlab/ui-components": "^4.4.3"
   },
   "devDependencies": {

@@ -17,7 +17,7 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
-dependencies = []
+dependencies = ["jupyter_server>=2.0.0,<3"]
 dynamic = ["version", "description", "authors", "urls", "keywords"]
 
 [tool.hatch.version]
@@ -37,6 +37,7 @@ packages = ["hub_services_launcher"]
 [tool.hatch.build.targets.wheel.shared-data]
 "hub_services_launcher/labextension" = "share/jupyter/labextensions/hub_services_launcher"
 "install.json" = "share/jupyter/labextensions/hub_services_launcher/install.json"
+"jupyter-config/server-config" = "etc/jupyter/jupyter_server_config.d"
 
 [tool.hatch.build.hooks.version]
 path = "hub_services_launcher/_version.py"
