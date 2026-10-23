@@ -82,7 +82,10 @@ async function fetchServices(hubHost: string, hubPrefix: string): Promise<IHubSe
       );
       return [];
     }
-    const services: IHubService[] = await response.json();
+    // JupyterHub 5.x answers with an object keyed by service name; accept a
+    // plain array too, in case other versions differ.
+    const data: IHubService[] | Record<string, IHubService> = await response.json();
+    const services = Array.isArray(data) ? data : Object.values(data);
     return services.filter(s => s.display && s.prefix);
   } catch (error) {
     console.debug('hub-services-launcher: could not list Hub services', error);

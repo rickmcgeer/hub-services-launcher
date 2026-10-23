@@ -30,6 +30,14 @@ in the browser console.
 Only services with `display: True` are shown. Services without a proxied URL
 (managed processes, culler, etc.) are skipped.
 
+Limitation: the Hub's own Services menu also hides services the user lacks
+`access:services` for; the API doesn't expose that, so with `list:services`
+granted broadly a tile can appear for a service the user can't open (the click
+then gets a 403 from the Hub). Fine when every user can access every service.
+
+The extension accepts both response shapes of `GET /hub/api/services` (JupyterHub
+5.x returns an object keyed by service name).
+
 ## Install
 
 ```bash
